@@ -160,15 +160,10 @@
             min-height: 500px;
         }
 
-        .unsorted1-column { left: 50px; top: 50px; }
-        .unsorted2-column { left: 400px; top: 50px; }
-        .unsorted3-column { left: 750px; top: 50px; }
-        .unsorted4-column { left: 1100px; top: 50px; }
-        .unsorted5-column { left: 1450px; top: 50px; }
-        .legendary-column { left: 1900px; top: 50px; }
-        .elite-column { left: 2250px; top: 50px; }
-        .rare-column { left: 2600px; top: 50px; }
-        .common-column { left: 2950px; top: 50px; }
+        .legendary-column { left: 50px; top: 50px; }
+        .elite-column { left: 400px; top: 50px; }
+        .rare-column { left: 750px; top: 50px; }
+        .common-column { left: 1100px; top: 50px; }
 
         .tier-header {
             padding: 15px;
@@ -179,7 +174,6 @@
             border: none;
         }
 
-        .unsorted-header { display: none; } /* Hide unsorted headers */
         .legendary-header { background: transparent; }
         .elite-header { background: transparent; }
         .rare-header { background: transparent; }
@@ -294,31 +288,6 @@
 <body>
     <div class="whiteboard" id="whiteboard">
         <div class="whiteboard-content" id="whiteboardContent">
-            <div class="tier-column unsorted1-column">
-                <div class="tier-header unsorted-header"></div>
-                <div class="tier-content" id="unsorted1-tier"></div>
-            </div>
-            
-            <div class="tier-column unsorted2-column">
-                <div class="tier-header unsorted-header"></div>
-                <div class="tier-content" id="unsorted2-tier"></div>
-            </div>
-            
-            <div class="tier-column unsorted3-column">
-                <div class="tier-header unsorted-header"></div>
-                <div class="tier-content" id="unsorted3-tier"></div>
-            </div>
-            
-            <div class="tier-column unsorted4-column">
-                <div class="tier-header unsorted-header"></div>
-                <div class="tier-content" id="unsorted4-tier"></div>
-            </div>
-            
-            <div class="tier-column unsorted5-column">
-                <div class="tier-header unsorted-header"></div>
-                <div class="tier-content" id="unsorted5-tier"></div>
-            </div>
-            
             <div class="tier-column legendary-column">
                 <div class="tier-header legendary-header">LEGENDARY</div>
                 <div class="tier-content" id="legendary-tier"></div>
@@ -2618,11 +2587,6 @@ Steven Okert,okertst01,5,8,2025,"SFG, FLA",SFG (3); FLA (3),P,281,0,0,0,0,0,0,0,
         // ============ STATE VARIABLES ============
         let players = [];
         let tiers = {
-            unsorted1: [],
-            unsorted2: [],
-            unsorted3: [],
-            unsorted4: [],
-            unsorted5: [],
             legendary: [],
             elite: [],
             rare: [],
@@ -2639,27 +2603,27 @@ Steven Okert,okertst01,5,8,2025,"SFG, FLA",SFG (3); FLA (3),P,281,0,0,0,0,0,0,0,
         // ============ INITIALIZATION ============
         document.addEventListener('DOMContentLoaded', function() {
             loadPlayerData();
-            populateUnsortedTier(); // Add top 500 players to unsorted
+            populateInitialTiers(); // Add top 300 players to tiers
             loadFromLocalStorage(); // Auto-load saved state
             initializeEventListeners();
             initializeZoomAndPan();
             updateZoomIndicator();
         });
 
-        // ============ POPULATE UNSORTED TIER ============
-        function populateUnsortedTier() {
-            // Sort players by WAR (descending) and take top 300
-            const sortedPlayers = [...players]
+        // ============ POPULATE INITIAL TIERS ============
+        function populateInitialTiers() {
+            // Get top 300 players sorted by WAR
+            const top300 = [...players]
                 .filter(p => p.Career_WAR && parseFloat(p.Career_WAR) > 0)
                 .sort((a, b) => parseFloat(b.Career_WAR) - parseFloat(a.Career_WAR))
                 .slice(0, 300);
             
-            // Split into 5 columns of 60 each
-            tiers.unsorted1 = sortedPlayers.slice(0, 60);
-            tiers.unsorted2 = sortedPlayers.slice(60, 120);
-            tiers.unsorted3 = sortedPlayers.slice(120, 180);
-            tiers.unsorted4 = sortedPlayers.slice(180, 240);
-            tiers.unsorted5 = sortedPlayers.slice(240, 300);
+            // Split evenly: 75 per tier
+            tiers.legendary = top300.slice(0, 75);
+            tiers.elite = top300.slice(75, 150);
+            tiers.rare = top300.slice(150, 225);
+            tiers.common = top300.slice(225, 300);
+            
             renderAllTiers();
         }
 
@@ -2746,7 +2710,7 @@ Steven Okert,okertst01,5,8,2025,"SFG, FLA",SFG (3); FLA (3),P,281,0,0,0,0,0,0,0,
                 handleSearch(e.target.value);
             });
 
-            // Re-center button - resets zoom and pan
+            // Re-center button
             recenterButton.addEventListener('touchend', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
@@ -2871,7 +2835,7 @@ Steven Okert,okertst01,5,8,2025,"SFG, FLA",SFG (3); FLA (3),P,281,0,0,0,0,0,0,0,
 
         // ============ RENDERING ============
         function renderAllTiers() {
-            ['unsorted1', 'unsorted2', 'unsorted3', 'unsorted4', 'unsorted5', 'legendary', 'elite', 'rare', 'common'].forEach(tier => {
+            ['legendary', 'elite', 'rare', 'common'].forEach(tier => {
                 renderTier(tier);
             });
         }
@@ -2935,10 +2899,6 @@ Steven Okert,okertst01,5,8,2025,"SFG, FLA",SFG (3); FLA (3),P,281,0,0,0,0,0,0,0,
         }
 
         function removePlayer(playerId, tier) {
-            if (!tiers[tier]) {
-                console.error('Invalid tier:', tier);
-                return;
-            }
             tiers[tier] = tiers[tier].filter(p => p.key_bbref !== playerId);
             onTiersChanged();
         }
@@ -2947,11 +2907,6 @@ Steven Okert,okertst01,5,8,2025,"SFG, FLA",SFG (3); FLA (3),P,281,0,0,0,0,0,0,0,
         // FIX #2 & #3: Fixed drag-and-drop with zoom awareness and reordering support
         function startDrag(e, playerId, tier) {
             e.preventDefault();
-
-            if (!tiers[tier]) {
-                console.error('Invalid tier:', tier);
-                return;
-            }
 
             const player = tiers[tier].find(p => p.key_bbref === playerId);
             if (!player) return;
@@ -3212,7 +3167,7 @@ Steven Okert,okertst01,5,8,2025,"SFG, FLA",SFG (3); FLA (3),P,281,0,0,0,0,0,0,0,
 
         function recenter() {
             zoom = 1;
-            panX = -1700;  // Centers view on the four main tier columns
+            panX = 0;
             panY = 0;
             updateTransform();
         }
@@ -3246,7 +3201,7 @@ Steven Okert,okertst01,5,8,2025,"SFG, FLA",SFG (3); FLA (3),P,281,0,0,0,0,0,0,0,
         function exportToCSV() {
             let csv = 'Player Name,Tier,Career_WAR,Final_Season,Seasons_Per_Team,Eligible Positions\n';
             
-            ['unsorted1', 'unsorted2', 'unsorted3', 'unsorted4', 'unsorted5', 'legendary', 'elite', 'rare', 'common'].forEach(tier => {
+            ['legendary', 'elite', 'rare', 'common'].forEach(tier => {
                 tiers[tier].forEach(player => {
                     const positions = getPlayerPositions(player);
                     csv += `"${player.player_name}","${tier}","${player.Career_WAR}","${player.Final_Season}","${player.Seasons_Per_Team}","${positions}"\n`;
@@ -3262,11 +3217,6 @@ Steven Okert,okertst01,5,8,2025,"SFG, FLA",SFG (3); FLA (3),P,281,0,0,0,0,0,0,0,
 
         function clearAll() {
             tiers = {
-                unsorted1: [],
-                unsorted2: [],
-                unsorted3: [],
-                unsorted4: [],
-                unsorted5: [],
                 legendary: [],
                 elite: [],
                 rare: [],
