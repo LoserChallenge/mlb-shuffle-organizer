@@ -19,39 +19,52 @@
             overflow: hidden;
             -webkit-user-select: none;
             user-select: none;
+            display: flex;
+            flex-direction: column;
         }
 
-        .controls-panel {
+        .deck-area {
             position: fixed;
-            top: 20px;
-            right: 20px;
-            background: rgba(255, 255, 255, 0.95);
-            padding: 15px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 200px;
+            background: rgba(255, 255, 255, 0.98);
+            border-top: 3px solid #333;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
             z-index: 1000;
-            max-width: 320px;
-            touch-action: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .deck-controls {
+            padding: 10px 15px;
+            background: rgba(240, 240, 240, 0.95);
+            border-bottom: 2px solid #ddd;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
         }
 
         .controls-title {
-            font-size: 14px;
+            font-size: 12px;
             color: #333;
-            margin-bottom: 10px;
-            text-align: center;
+            margin-right: 10px;
+            font-family: Arial, sans-serif;
         }
 
         .search-container {
             position: relative;
-            margin-bottom: 10px;
+            flex: 0 0 250px;
         }
 
         .search-input {
             width: 100%;
-            padding: 8px;
+            padding: 6px 8px;
             border: 2px solid #ddd;
             border-radius: 4px;
-            font-size: 12px;
+            font-size: 11px;
             font-family: Arial, sans-serif;
             touch-action: manipulation;
         }
@@ -107,24 +120,23 @@
 
         .controls-buttons {
             display: flex;
-            flex-direction: column;
-            gap: 8px;
+            gap: 6px;
+            flex-wrap: wrap;
         }
 
         .button {
-            flex: 1;
-            min-width: 60px;
-            padding: 6px 10px;
+            padding: 6px 12px;
             background: #007bff;
             color: white;
             border: none;
             border-radius: 4px;
-            font-size: 11px;
+            font-size: 10px;
             font-family: Arial, sans-serif;
             cursor: pointer;
             transition: background 0.2s;
             touch-action: manipulation;
             -webkit-tap-highlight-color: transparent;
+            white-space: nowrap;
         }
 
         .button:active {
@@ -135,12 +147,76 @@
             display: none;
         }
 
+        .deck-scroll {
+            flex: 1;
+            overflow-x: auto;
+            overflow-y: hidden;
+            padding: 10px 15px;
+            white-space: nowrap;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .deck-scroll::-webkit-scrollbar {
+            height: 8px;
+        }
+
+        .deck-scroll::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+
+        .deck-scroll::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+
+        .deck-card {
+            display: inline-block;
+            width: 140px;
+            background: white;
+            border: 2px solid #333;
+            border-radius: 4px;
+            padding: 8px;
+            margin-right: 8px;
+            vertical-align: top;
+            cursor: move;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            transition: transform 0.1s, box-shadow 0.1s;
+            touch-action: none;
+        }
+
+        .deck-card:active {
+            transform: scale(1.02);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        }
+
+        .deck-card .player-name {
+            font-size: 12px;
+            color: #222;
+            margin-bottom: 4px;
+            font-weight: bold;
+            white-space: normal;
+            word-wrap: break-word;
+        }
+
+        .deck-card .player-stats-row {
+            font-size: 10px;
+            color: #555;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .deck-card .stat-label {
+            color: #666;
+        }
+
+        .deck-card .stat-value {
+            color: #333;
+        }
+
         .whiteboard {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            flex: 1;
+            position: relative;
             overflow: hidden;
             touch-action: none;
         }
@@ -168,10 +244,21 @@
         .tier-header {
             padding: 15px;
             text-align: center;
-            font-size: 20px;
+            font-size: 40px;
             color: black;
             background: transparent;
             border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .tier-counter {
+            font-size: 20px;
+            color: #666;
+            font-family: Arial, sans-serif;
+            font-weight: normal;
         }
 
         .legendary-header { background: transparent; }
@@ -299,48 +386,63 @@
     <div class="whiteboard" id="whiteboard">
         <div class="whiteboard-content" id="whiteboardContent">
             <div class="tier-column legendary-column">
-                <div class="tier-header legendary-header">LEGENDARY</div>
+                <div class="tier-header legendary-header">
+                    <span>LEGENDARY</span>
+                    <span class="tier-counter" id="legendary-counter">(0)</span>
+                </div>
                 <div class="tier-content" id="legendary-tier"></div>
             </div>
             
             <div class="tier-column elite-column">
-                <div class="tier-header elite-header">ELITE</div>
+                <div class="tier-header elite-header">
+                    <span>ELITE</span>
+                    <span class="tier-counter" id="elite-counter">(0)</span>
+                </div>
                 <div class="tier-content" id="elite-tier"></div>
             </div>
             
             <div class="tier-column rare-column">
-                <div class="tier-header rare-header">RARE</div>
+                <div class="tier-header rare-header">
+                    <span>RARE</span>
+                    <span class="tier-counter" id="rare-counter">(0)</span>
+                </div>
                 <div class="tier-content" id="rare-tier"></div>
             </div>
             
             <div class="tier-column common-column">
-                <div class="tier-header common-header">COMMON</div>
+                <div class="tier-header common-header">
+                    <span>COMMON</span>
+                    <span class="tier-counter" id="common-counter">(0)</span>
+                </div>
                 <div class="tier-content" id="common-tier"></div>
             </div>
         </div>
     </div>
 
-    <div class="controls-panel">
-        <div class="controls-title">Add Player</div>
-        <div class="search-container">
-            <input 
-                type="text" 
-                class="search-input" 
-                id="searchInput"
-                placeholder="Type player name..."
-                autocomplete="off"
-            />
-            <div class="autocomplete-dropdown" id="autocompleteDropdown"></div>
+    <div class="deck-area">
+        <div class="deck-controls">
+            <span class="controls-title">Add Player:</span>
+            <div class="search-container">
+                <input 
+                    type="text" 
+                    class="search-input" 
+                    id="searchInput"
+                    placeholder="Type player name..."
+                    autocomplete="off"
+                />
+                <div class="autocomplete-dropdown" id="autocompleteDropdown"></div>
+            </div>
+            <div class="controls-buttons">
+                <button class="button" id="resetButton">RESET</button>
+                <button class="button" id="recenterButton">Re-Center</button>
+                <button class="button" id="saveButton">Save</button>
+                <button class="button" id="loadButton">Load</button>
+                <button class="button" id="exportButton">Export CSV</button>
+                <button class="button" id="clearButton">Clear</button>
+            </div>
+            <input type="file" class="file-input" id="fileInput" accept=".json" />
         </div>
-        <div class="controls-buttons">
-            <button class="button" id="resetButton">RESET</button>
-            <button class="button" id="recenterButton">Re-Center</button>
-            <button class="button" id="saveButton">Save</button>
-            <button class="button" id="loadButton">Load</button>
-            <button class="button" id="exportButton">Export CSV</button>
-            <button class="button" id="clearButton">Clear</button>
-        </div>
-        <input type="file" class="file-input" id="fileInput" accept=".json" />
+        <div class="deck-scroll" id="deckScroll"></div>
     </div>
 
     <div class="zoom-indicator" id="zoomIndicator">Zoom: 100%</div>
@@ -2597,6 +2699,7 @@ Jose Siri,sirijo01,5,6,2025,"HOU, TBD",HOU (2); TBD (3),CF,0,0,1,0,0,0,6,337,12,
 Steven Okert,okertst01,5,8,2025,"SFG, FLA",SFG (3); FLA (3),P,281,0,0,0,0,0,0,0,0,0`;
         // ============ STATE VARIABLES ============
         let players = [];
+        let deck = []; // All players in the deck, sorted by WAR
         let tiers = {
             legendary: [],
             elite: [],
@@ -2615,28 +2718,21 @@ Steven Okert,okertst01,5,8,2025,"SFG, FLA",SFG (3); FLA (3),P,281,0,0,0,0,0,0,0,
         // ============ INITIALIZATION ============
         document.addEventListener('DOMContentLoaded', function() {
             loadPlayerData();
-            populateInitialTiers(); // Add top 300 players to tiers
+            initializeDeck(); // Populate deck with all players sorted by WAR
             loadFromLocalStorage(); // Auto-load saved state
             initializeEventListeners();
             initializeZoomAndPan();
             updateZoomIndicator();
+            renderDeck(); // Render all deck cards
+            renderAllTiers(); // Start with empty tiers
         });
 
-        // ============ POPULATE INITIAL TIERS ============
-        function populateInitialTiers() {
-            // Get top 300 players sorted by WAR
-            const top300 = [...players]
+        // ============ INITIALIZE DECK ============
+        function initializeDeck() {
+            // Sort all players by WAR (high to low) and populate deck
+            deck = [...players]
                 .filter(p => p.Career_WAR && parseFloat(p.Career_WAR) > 0)
-                .sort((a, b) => parseFloat(b.Career_WAR) - parseFloat(a.Career_WAR))
-                .slice(0, 300);
-            
-            // Split evenly: 75 per tier
-            tiers.legendary = top300.slice(0, 75);
-            tiers.elite = top300.slice(75, 150);
-            tiers.rare = top300.slice(150, 225);
-            tiers.common = top300.slice(225, 300);
-            
-            renderAllTiers();
+                .sort((a, b) => parseFloat(b.Career_WAR) - parseFloat(a.Career_WAR));
         }
 
         // ============ PLAYER DATA LOADING ============
@@ -2703,6 +2799,7 @@ Steven Okert,okertst01,5,8,2025,"SFG, FLA",SFG (3); FLA (3),P,281,0,0,0,0,0,0,0,
         // Auto-save on any change
         function onTiersChanged() {
             renderAllTiers();
+            renderDeck();
             saveToLocalStorage();
         }
 
@@ -2851,6 +2948,9 @@ Steven Okert,okertst01,5,8,2025,"SFG, FLA",SFG (3); FLA (3),P,281,0,0,0,0,0,0,0,
             );
 
             if (!isOnBoard) {
+                // Remove from deck
+                deck = deck.filter(p => p.key_bbref !== player.key_bbref);
+                // Add to tier
                 tiers[tier].push(player);
                 onTiersChanged();
             }
@@ -2864,6 +2964,58 @@ Steven Okert,okertst01,5,8,2025,"SFG, FLA",SFG (3); FLA (3),P,281,0,0,0,0,0,0,0,
         function renderAllTiers() {
             ['legendary', 'elite', 'rare', 'common'].forEach(tier => {
                 renderTier(tier);
+            });
+            updateTierCounters();
+        }
+
+        function updateTierCounters() {
+            ['legendary', 'elite', 'rare', 'common'].forEach(tier => {
+                const counter = document.getElementById(`${tier}-counter`);
+                const count = tiers[tier].length;
+                counter.textContent = `(${count})`;
+            });
+        }
+
+        function renderDeck() {
+            const deckScroll = document.getElementById('deckScroll');
+            deckScroll.innerHTML = deck.map(player => createDeckCard(player)).join('');
+            
+            // Add event listeners to all deck cards
+            deckScroll.querySelectorAll('.deck-card').forEach(card => {
+                setupDeckCardEventListeners(card);
+            });
+        }
+
+        function createDeckCard(player) {
+            return `
+                <div class="deck-card" data-key="${player.key_bbref}" data-location="deck">
+                    <div class="player-name">${player.player_name}</div>
+                    <div class="player-stats-row">
+                        <div class="stat-item">
+                            <span class="stat-label">WAR:</span>
+                            <span class="stat-value">${player.Career_WAR}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function setupDeckCardEventListeners(card) {
+            const key = card.getAttribute('data-key');
+            
+            // Drag functionality for deck cards
+            card.addEventListener('touchstart', function(e) {
+                const player = deck.find(p => p.key_bbref === key);
+                if (player) {
+                    startDrag(e, key, 'deck');
+                }
+            }, { passive: false });
+
+            card.addEventListener('mousedown', function(e) {
+                const player = deck.find(p => p.key_bbref === key);
+                if (player) {
+                    startDrag(e, key, 'deck');
+                }
             });
         }
 
@@ -2926,16 +3078,33 @@ Steven Okert,okertst01,5,8,2025,"SFG, FLA",SFG (3); FLA (3),P,281,0,0,0,0,0,0,0,
         }
 
         function removePlayer(playerId, tier) {
-            tiers[tier] = tiers[tier].filter(p => p.key_bbref !== playerId);
-            onTiersChanged();
+            const player = tiers[tier].find(p => p.key_bbref === playerId);
+            if (player) {
+                // Remove from tier
+                tiers[tier] = tiers[tier].filter(p => p.key_bbref !== playerId);
+                // Return to deck
+                returnPlayerToDeck(player);
+                onTiersChanged();
+            }
+        }
+
+        function returnPlayerToDeck(player) {
+            // Add player back to deck and re-sort by WAR
+            deck.push(player);
+            deck.sort((a, b) => parseFloat(b.Career_WAR) - parseFloat(a.Career_WAR));
         }
 
         // ============ DRAG AND DROP ============
         // FIX #2 & #3: Fixed drag-and-drop with zoom awareness and reordering support
-        function startDrag(e, playerId, tier) {
+        function startDrag(e, playerId, location) {
             e.preventDefault();
 
-            const player = tiers[tier].find(p => p.key_bbref === playerId);
+            let player;
+            if (location === 'deck') {
+                player = deck.find(p => p.key_bbref === playerId);
+            } else {
+                player = tiers[location].find(p => p.key_bbref === playerId);
+            }
             if (!player) return;
 
             const pos = getPointerPosition(e);
@@ -2944,17 +3113,17 @@ Steven Okert,okertst01,5,8,2025,"SFG, FLA",SFG (3); FLA (3),P,281,0,0,0,0,0,0,0,
             // For touch, add small delay to differentiate from scrolling
             if (e.touches) {
                 setTimeout(function() {
-                    initiateDrag(pos, player, tier, cardElement);
+                    initiateDrag(pos, player, location, cardElement);
                 }, 30);
             } else {
-                initiateDrag(pos, player, tier, cardElement);
+                initiateDrag(pos, player, location, cardElement);
             }
         }
 
-        function initiateDrag(pos, player, tier, cardElement) {
+        function initiateDrag(pos, player, fromLocation, cardElement) {
             dragState = {
                 player: player,
-                fromTier: tier,
+                fromLocation: fromLocation, // 'deck' or tier name
                 startX: pos.x,
                 startY: pos.y,
                 currentX: pos.x,
@@ -3013,10 +3182,14 @@ Steven Okert,okertst01,5,8,2025,"SFG, FLA",SFG (3); FLA (3),P,281,0,0,0,0,0,0,0,
                 const targetTier = getTierAtPosition(pos.x, pos.y);
 
                 if (targetTier) {
-                    // Remove player from original tier
-                    tiers[dragState.fromTier] = tiers[dragState.fromTier].filter(
-                        p => p.key_bbref !== dragState.player.key_bbref
-                    );
+                    // Remove player from original location (tier or deck)
+                    if (dragState.fromLocation === 'deck') {
+                        deck = deck.filter(p => p.key_bbref !== dragState.player.key_bbref);
+                    } else {
+                        tiers[dragState.fromLocation] = tiers[dragState.fromLocation].filter(
+                            p => p.key_bbref !== dragState.player.key_bbref
+                        );
+                    }
 
                     // FIXED: Use insertion index for ALL moves (both within tier and between tiers)
                     const insertIndex = getInsertionIndex(targetTier, pos.y);
@@ -3046,7 +3219,12 @@ Steven Okert,okertst01,5,8,2025,"SFG, FLA",SFG (3); FLA (3),P,281,0,0,0,0,0,0,0,
         function createDraggedCardElement() {
             draggedCardElement = document.createElement('div');
             draggedCardElement.className = 'player-card player-card-dragged';
-            draggedCardElement.innerHTML = createPlayerCard(dragState.player, dragState.fromTier);
+            // Create card HTML based on where it's from
+            if (dragState.fromLocation === 'deck') {
+                draggedCardElement.innerHTML = createDeckCard(dragState.player);
+            } else {
+                draggedCardElement.innerHTML = createPlayerCard(dragState.player, dragState.fromLocation);
+            }
             draggedCardElement.style.left = dragState.currentX + 'px';
             draggedCardElement.style.top = dragState.currentY + 'px';
             document.body.appendChild(draggedCardElement);
@@ -3155,16 +3333,16 @@ Steven Okert,okertst01,5,8,2025,"SFG, FLA",SFG (3); FLA (3),P,281,0,0,0,0,0,0,0,
 
             // Pinch zoom for iPad
             whiteboard.addEventListener('touchstart', function(e) {
-                // Ignore touches on control panel
-                if (e.target.closest('.controls-panel')) return;
+                // Ignore touches on deck area
+                if (e.target.closest('.deck-area')) return;
                 
                 if (e.touches.length === 2) {
                     isPanning = false;
                     isPanningActive = false;
                     lastTouchDistance = getTouchDistance(e.touches);
                 } else if (e.touches.length === 1) {
-                    // Single finger - might be panning (unless it's on a player card or controls)
-                    if (!e.target.closest('.player-card') && !e.target.closest('.controls-panel')) {
+                    // Single finger - might be panning (unless it's on a player card or deck)
+                    if (!e.target.closest('.player-card') && !e.target.closest('.deck-area')) {
                         panStartX = e.touches[0].clientX;
                         panStartY = e.touches[0].clientY;
                         panStartPanX = panX;
@@ -3202,7 +3380,7 @@ Steven Okert,okertst01,5,8,2025,"SFG, FLA",SFG (3); FLA (3),P,281,0,0,0,0,0,0,0,
 
             // Mouse wheel zoom for desktop
             whiteboard.addEventListener('wheel', function(e) {
-                if (e.target.closest('.controls-panel')) return;
+                if (e.target.closest('.deck-area')) return;
                 
                 e.preventDefault();
                 const delta = e.deltaY > 0 ? 0.9 : 1.1;
@@ -3279,6 +3457,14 @@ Steven Okert,okertst01,5,8,2025,"SFG, FLA",SFG (3); FLA (3),P,281,0,0,0,0,0,0,0,
         }
 
         function clearAll() {
+            // Return all cards from tiers back to deck
+            ['legendary', 'elite', 'rare', 'common'].forEach(tier => {
+                tiers[tier].forEach(player => {
+                    returnPlayerToDeck(player);
+                });
+            });
+            
+            // Clear all tiers
             tiers = {
                 legendary: [],
                 elite: [],
@@ -3296,9 +3482,22 @@ Steven Okert,okertst01,5,8,2025,"SFG, FLA",SFG (3); FLA (3),P,281,0,0,0,0,0,0,0,
                 console.error('Error clearing localStorage:', e);
             }
             
-            // Reload the top 300 players distributed across tiers
-            populateInitialTiers();
-            saveToLocalStorage();
+            // Return all cards from tiers back to deck
+            ['legendary', 'elite', 'rare', 'common'].forEach(tier => {
+                tiers[tier].forEach(player => {
+                    returnPlayerToDeck(player);
+                });
+            });
+            
+            // Clear all tiers
+            tiers = {
+                legendary: [],
+                elite: [],
+                rare: [],
+                common: []
+            };
+            
+            onTiersChanged();
         }
     </script>
 </body>
