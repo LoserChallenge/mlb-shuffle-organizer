@@ -323,6 +323,7 @@
             <div class="autocomplete-dropdown" id="autocompleteDropdown"></div>
         </div>
         <div class="controls-buttons">
+            <button class="button" id="resetButton">RESET</button>
             <button class="button" id="recenterButton">Re-Center</button>
             <button class="button" id="saveButton">Save</button>
             <button class="button" id="loadButton">Load</button>
@@ -2698,6 +2699,7 @@ Steven Okert,okertst01,5,8,2025,"SFG, FLA",SFG (3); FLA (3),P,281,0,0,0,0,0,0,0,
         // FIX #1: Clear button - removed touchend handler, using only click handler
         function initializeEventListeners() {
             const searchInput = document.getElementById('searchInput');
+            const resetButton = document.getElementById('resetButton');
             const recenterButton = document.getElementById('recenterButton');
             const saveButton = document.getElementById('saveButton');
             const loadButton = document.getElementById('loadButton');
@@ -2708,6 +2710,20 @@ Steven Okert,okertst01,5,8,2025,"SFG, FLA",SFG (3); FLA (3),P,281,0,0,0,0,0,0,0,
             // Search input - use input event for typing
             searchInput.addEventListener('input', function(e) {
                 handleSearch(e.target.value);
+            });
+
+            // Reset button - clear cache and reload initial 300 players
+            resetButton.addEventListener('touchend', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                if (confirm('Reset to the initial top 300 players? This will clear your current layout.')) {
+                    resetToInitial();
+                }
+            }, { passive: false });
+            resetButton.addEventListener('click', function() {
+                if (confirm('Reset to the initial top 300 players? This will clear your current layout.')) {
+                    resetToInitial();
+                }
             });
 
             // Re-center button
@@ -3223,6 +3239,19 @@ Steven Okert,okertst01,5,8,2025,"SFG, FLA",SFG (3); FLA (3),P,281,0,0,0,0,0,0,0,
                 common: []
             };
             onTiersChanged();
+        }
+
+        function resetToInitial() {
+            // Clear any cached/saved state
+            try {
+                localStorage.removeItem('mlb_shuffle_tiers');
+            } catch (e) {
+                console.error('Error clearing localStorage:', e);
+            }
+            
+            // Reload the top 300 players distributed across tiers
+            populateInitialTiers();
+            saveToLocalStorage();
         }
     </script>
 </body>
