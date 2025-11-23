@@ -283,6 +283,16 @@
             font-family: Arial, sans-serif;
             z-index: 999;
         }
+
+        .drop-indicator {
+            height: 4px;
+            background: #007bff;
+            margin: 8px 0;
+            border-radius: 2px;
+            box-shadow: 0 0 8px rgba(0, 123, 255, 0.6);
+            pointer-events: none;
+            transition: none;
+        }
     </style>
 </head>
 <body>
@@ -2600,6 +2610,7 @@ Steven Okert,okertst01,5,8,2025,"SFG, FLA",SFG (3); FLA (3),P,281,0,0,0,0,0,0,0,
         let lastTouchDistance = 0;
         let dragState = null;
         let draggedCardElement = null;
+        let dropIndicator = null;
 
         // ============ INITIALIZATION ============
         document.addEventListener('DOMContentLoaded', function() {
@@ -2983,6 +2994,9 @@ Steven Okert,okertst01,5,8,2025,"SFG, FLA",SFG (3); FLA (3),P,281,0,0,0,0,0,0,0,
             if (dragState.isDragging && draggedCardElement) {
                 draggedCardElement.style.left = pos.x + 'px';
                 draggedCardElement.style.top = pos.y + 'px';
+                
+                // Show drop indicator at the position where card will be placed
+                updateDropIndicator(pos.x, pos.y);
             }
         }
 
@@ -3004,14 +3018,9 @@ Steven Okert,okertst01,5,8,2025,"SFG, FLA",SFG (3); FLA (3),P,281,0,0,0,0,0,0,0,
                         p => p.key_bbref !== dragState.player.key_bbref
                     );
 
-                    if (targetTier === dragState.fromTier) {
-                        // FIXED: Reordering within same tier
-                        const insertIndex = getInsertionIndex(targetTier, pos.y);
-                        tiers[targetTier].splice(insertIndex, 0, dragState.player);
-                    } else {
-                        // Moving to different tier - add to end
-                        tiers[targetTier].push(dragState.player);
-                    }
+                    // FIXED: Use insertion index for ALL moves (both within tier and between tiers)
+                    const insertIndex = getInsertionIndex(targetTier, pos.y);
+                    tiers[targetTier].splice(insertIndex, 0, dragState.player);
                     
                     onTiersChanged();
                 }
@@ -3022,6 +3031,9 @@ Steven Okert,okertst01,5,8,2025,"SFG, FLA",SFG (3); FLA (3),P,281,0,0,0,0,0,0,0,
                     draggedCardElement = null;
                 }
             }
+
+            // Remove drop indicator
+            removeDropIndicator();
 
             // Remove visual feedback
             if (dragState.originalCard) {
@@ -3084,6 +3096,41 @@ Steven Okert,okertst01,5,8,2025,"SFG, FLA",SFG (3); FLA (3),P,281,0,0,0,0,0,0,0,
             
             // If past all cards, insert at the end
             return tiers[tier].length;
+        }
+
+        // NEW: Update drop indicator to show where card will be placed
+        function updateDropIndicator(x, y) {
+            const targetTier = getTierAtPosition(x, y);
+            
+            if (!targetTier) {
+                removeDropIndicator();
+                return;
+            }
+
+            const container = document.getElementById(`${targetTier}-tier`);
+            const insertIndex = getInsertionIndex(targetTier, y);
+            
+            // Create indicator if it doesn't exist
+            if (!dropIndicator) {
+                dropIndicator = document.createElement('div');
+                dropIndicator.className = 'drop-indicator';
+            }
+
+            // Insert indicator at the correct position
+            const cards = Array.from(container.querySelectorAll('.player-card'));
+            if (insertIndex < cards.length) {
+                container.insertBefore(dropIndicator, cards[insertIndex]);
+            } else {
+                container.appendChild(dropIndicator);
+            }
+        }
+
+        // NEW: Remove drop indicator
+        function removeDropIndicator() {
+            if (dropIndicator && dropIndicator.parentNode) {
+                dropIndicator.parentNode.removeChild(dropIndicator);
+            }
+            dropIndicator = null;
         }
 
         function getPointerPosition(e) {
