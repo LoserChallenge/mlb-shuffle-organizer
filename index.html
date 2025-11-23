@@ -160,30 +160,34 @@
             min-height: 500px;
         }
 
-        .legendary-column { left: 50px; top: 50px; }
-        .elite-column { left: 400px; top: 50px; }
-        .rare-column { left: 750px; top: 50px; }
-        .common-column { left: 1100px; top: 50px; }
+        .unsorted1-column { left: 50px; top: 50px; }
+        .unsorted2-column { left: 400px; top: 50px; }
+        .unsorted3-column { left: 750px; top: 50px; }
+        .unsorted4-column { left: 1100px; top: 50px; }
+        .unsorted5-column { left: 1450px; top: 50px; }
+        .legendary-column { left: 1900px; top: 50px; }
+        .elite-column { left: 2250px; top: 50px; }
+        .rare-column { left: 2600px; top: 50px; }
+        .common-column { left: 2950px; top: 50px; }
 
         .tier-header {
             padding: 15px;
-            border-radius: 8px 8px 0 0;
             text-align: center;
             font-size: 20px;
-            color: white;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            color: black;
+            background: transparent;
+            border: none;
         }
 
-        .legendary-header { background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%); }
-        .elite-header { background: linear-gradient(135deg, #C0C0C0 0%, #808080 100%); }
-        .rare-header { background: linear-gradient(135deg, #CD7F32 0%, #8B4513 100%); }
-        .common-header { background: linear-gradient(135deg, #90EE90 0%, #006400 100%); }
+        .unsorted-header { display: none; } /* Hide unsorted headers */
+        .legendary-header { background: transparent; }
+        .elite-header { background: transparent; }
+        .rare-header { background: transparent; }
+        .common-header { background: transparent; }
 
         .tier-content {
-            background: rgba(255, 255, 255, 0.95);
-            border: 3px solid #ddd;
-            border-top: none;
-            border-radius: 0 0 8px 8px;
+            background: transparent;
+            border: none;
             min-height: 400px;
             padding: 15px;
         }
@@ -221,9 +225,10 @@
         }
 
         .player-name {
-            font-size: 16px;
+            font-size: 18px;
             color: #222;
             margin-bottom: 6px;
+            font-weight: bold;
         }
 
         .player-stats-row {
@@ -289,6 +294,31 @@
 <body>
     <div class="whiteboard" id="whiteboard">
         <div class="whiteboard-content" id="whiteboardContent">
+            <div class="tier-column unsorted1-column">
+                <div class="tier-header unsorted-header"></div>
+                <div class="tier-content" id="unsorted1-tier"></div>
+            </div>
+            
+            <div class="tier-column unsorted2-column">
+                <div class="tier-header unsorted-header"></div>
+                <div class="tier-content" id="unsorted2-tier"></div>
+            </div>
+            
+            <div class="tier-column unsorted3-column">
+                <div class="tier-header unsorted-header"></div>
+                <div class="tier-content" id="unsorted3-tier"></div>
+            </div>
+            
+            <div class="tier-column unsorted4-column">
+                <div class="tier-header unsorted-header"></div>
+                <div class="tier-content" id="unsorted4-tier"></div>
+            </div>
+            
+            <div class="tier-column unsorted5-column">
+                <div class="tier-header unsorted-header"></div>
+                <div class="tier-content" id="unsorted5-tier"></div>
+            </div>
+            
             <div class="tier-column legendary-column">
                 <div class="tier-header legendary-header">LEGENDARY</div>
                 <div class="tier-content" id="legendary-tier"></div>
@@ -324,6 +354,7 @@
             <div class="autocomplete-dropdown" id="autocompleteDropdown"></div>
         </div>
         <div class="controls-buttons">
+            <button class="button" id="recenterButton">Re-Center</button>
             <button class="button" id="saveButton">Save</button>
             <button class="button" id="loadButton">Load</button>
             <button class="button" id="exportButton">Export CSV</button>
@@ -2587,6 +2618,11 @@ Steven Okert,okertst01,5,8,2025,"SFG, FLA",SFG (3); FLA (3),P,281,0,0,0,0,0,0,0,
         // ============ STATE VARIABLES ============
         let players = [];
         let tiers = {
+            unsorted1: [],
+            unsorted2: [],
+            unsorted3: [],
+            unsorted4: [],
+            unsorted5: [],
             legendary: [],
             elite: [],
             rare: [],
@@ -2603,11 +2639,29 @@ Steven Okert,okertst01,5,8,2025,"SFG, FLA",SFG (3); FLA (3),P,281,0,0,0,0,0,0,0,
         // ============ INITIALIZATION ============
         document.addEventListener('DOMContentLoaded', function() {
             loadPlayerData();
+            populateUnsortedTier(); // Add top 500 players to unsorted
             loadFromLocalStorage(); // Auto-load saved state
             initializeEventListeners();
             initializeZoomAndPan();
             updateZoomIndicator();
         });
+
+        // ============ POPULATE UNSORTED TIER ============
+        function populateUnsortedTier() {
+            // Sort players by WAR (descending) and take top 300
+            const sortedPlayers = [...players]
+                .filter(p => p.Career_WAR && parseFloat(p.Career_WAR) > 0)
+                .sort((a, b) => parseFloat(b.Career_WAR) - parseFloat(a.Career_WAR))
+                .slice(0, 300);
+            
+            // Split into 5 columns of 60 each
+            tiers.unsorted1 = sortedPlayers.slice(0, 60);
+            tiers.unsorted2 = sortedPlayers.slice(60, 120);
+            tiers.unsorted3 = sortedPlayers.slice(120, 180);
+            tiers.unsorted4 = sortedPlayers.slice(180, 240);
+            tiers.unsorted5 = sortedPlayers.slice(240, 300);
+            renderAllTiers();
+        }
 
         // ============ PLAYER DATA LOADING ============
         function loadPlayerData() {
@@ -2680,6 +2734,7 @@ Steven Okert,okertst01,5,8,2025,"SFG, FLA",SFG (3); FLA (3),P,281,0,0,0,0,0,0,0,
         // FIX #1: Clear button - removed touchend handler, using only click handler
         function initializeEventListeners() {
             const searchInput = document.getElementById('searchInput');
+            const recenterButton = document.getElementById('recenterButton');
             const saveButton = document.getElementById('saveButton');
             const loadButton = document.getElementById('loadButton');
             const exportButton = document.getElementById('exportButton');
@@ -2690,6 +2745,14 @@ Steven Okert,okertst01,5,8,2025,"SFG, FLA",SFG (3); FLA (3),P,281,0,0,0,0,0,0,0,
             searchInput.addEventListener('input', function(e) {
                 handleSearch(e.target.value);
             });
+
+            // Re-center button - resets zoom and pan
+            recenterButton.addEventListener('touchend', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                recenter();
+            }, { passive: false });
+            recenterButton.addEventListener('click', recenter);
 
             // Buttons - use touchend for immediate response on iPad
             // Must stop propagation to prevent whiteboard from capturing events
@@ -2808,7 +2871,7 @@ Steven Okert,okertst01,5,8,2025,"SFG, FLA",SFG (3); FLA (3),P,281,0,0,0,0,0,0,0,
 
         // ============ RENDERING ============
         function renderAllTiers() {
-            ['legendary', 'elite', 'rare', 'common'].forEach(tier => {
+            ['unsorted1', 'unsorted2', 'unsorted3', 'unsorted4', 'unsorted5', 'legendary', 'elite', 'rare', 'common'].forEach(tier => {
                 renderTier(tier);
             });
         }
@@ -3138,6 +3201,13 @@ Steven Okert,okertst01,5,8,2025,"SFG, FLA",SFG (3); FLA (3),P,281,0,0,0,0,0,0,0,
             indicator.textContent = `Zoom: ${Math.round(zoom * 100)}%`;
         }
 
+        function recenter() {
+            zoom = 1;
+            panX = 0;
+            panY = 0;
+            updateTransform();
+        }
+
         // ============ SAVE/LOAD/EXPORT ============
         function saveLayout() {
             const data = JSON.stringify(tiers, null, 2);
@@ -3167,7 +3237,7 @@ Steven Okert,okertst01,5,8,2025,"SFG, FLA",SFG (3); FLA (3),P,281,0,0,0,0,0,0,0,
         function exportToCSV() {
             let csv = 'Player Name,Tier,Career_WAR,Final_Season,Seasons_Per_Team,Eligible Positions\n';
             
-            ['legendary', 'elite', 'rare', 'common'].forEach(tier => {
+            ['unsorted1', 'unsorted2', 'unsorted3', 'unsorted4', 'unsorted5', 'legendary', 'elite', 'rare', 'common'].forEach(tier => {
                 tiers[tier].forEach(player => {
                     const positions = getPlayerPositions(player);
                     csv += `"${player.player_name}","${tier}","${player.Career_WAR}","${player.Final_Season}","${player.Seasons_Per_Team}","${positions}"\n`;
@@ -3183,6 +3253,11 @@ Steven Okert,okertst01,5,8,2025,"SFG, FLA",SFG (3); FLA (3),P,281,0,0,0,0,0,0,0,
 
         function clearAll() {
             tiers = {
+                unsorted1: [],
+                unsorted2: [],
+                unsorted3: [],
+                unsorted4: [],
+                unsorted5: [],
                 legendary: [],
                 elite: [],
                 rare: [],
