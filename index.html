@@ -2935,6 +2935,10 @@ Steven Okert,okertst01,5,8,2025,"SFG, FLA",SFG (3); FLA (3),P,281,0,0,0,0,0,0,0,
         }
 
         function removePlayer(playerId, tier) {
+            if (!tiers[tier]) {
+                console.error('Invalid tier:', tier);
+                return;
+            }
             tiers[tier] = tiers[tier].filter(p => p.key_bbref !== playerId);
             onTiersChanged();
         }
@@ -2943,6 +2947,11 @@ Steven Okert,okertst01,5,8,2025,"SFG, FLA",SFG (3); FLA (3),P,281,0,0,0,0,0,0,0,
         // FIX #2 & #3: Fixed drag-and-drop with zoom awareness and reordering support
         function startDrag(e, playerId, tier) {
             e.preventDefault();
+
+            if (!tiers[tier]) {
+                console.error('Invalid tier:', tier);
+                return;
+            }
 
             const player = tiers[tier].find(p => p.key_bbref === playerId);
             if (!player) return;
@@ -3203,7 +3212,7 @@ Steven Okert,okertst01,5,8,2025,"SFG, FLA",SFG (3); FLA (3),P,281,0,0,0,0,0,0,0,
 
         function recenter() {
             zoom = 1;
-            panX = 0;
+            panX = -1700;  // Centers view on the four main tier columns
             panY = 0;
             updateTransform();
         }
